@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface DeveloperRepository extends JpaRepository<Developer, Integer> {
 
-    Optional<Developer> findByUser_UserId(Integer userId);
+    Optional<Developer> findByUser_Id(Long id);
 
     Optional<Developer> findByUser_Email(String email);
 

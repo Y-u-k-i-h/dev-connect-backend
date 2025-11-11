@@ -25,7 +25,7 @@ public class Client {
     private String companyName;
 
     @Column(length = 127)
-    private String Industry;
+    private String industry;
 
     @Column(columnDefinition = "TEXT")
     private String address;
