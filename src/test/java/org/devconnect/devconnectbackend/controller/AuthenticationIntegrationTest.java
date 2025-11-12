@@ -1,7 +1,9 @@
 package org.devconnect.devconnectbackend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.devconnect.devconnectbackend.dto.UserDTO;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.devconnect.devconnectbackend.dto.UserRegistrationDTO;
 import org.devconnect.devconnectbackend.model.User;
 import org.devconnect.devconnectbackend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,13 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Integration tests for Authentication endpoints
@@ -41,8 +41,9 @@ public class AuthenticationIntegrationTest {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @BeforeEach
-    void setUp() {
+                @BeforeEach
+                @SuppressWarnings("unused")
+                public void setUp() {
         // Clean up any existing test users
         userRepository.deleteAll();
     }
@@ -53,7 +54,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should successfully register a new developer user")
     void testRegisterNewDeveloper() throws Exception {
         // Arrange
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("john_dev");
         newUser.setEmail("john@developer.com");
         newUser.setPassword("SecurePass123!");
@@ -76,7 +77,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should successfully register a new client user")
     void testRegisterNewClient() throws Exception {
         // Arrange
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("jane_client");
         newUser.setEmail("jane@client.com");
         newUser.setPassword("ClientPass456!");
@@ -105,7 +106,7 @@ public class AuthenticationIntegrationTest {
         userRepository.save(existingUser);
 
         // Try to register with same email
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("different_username");
         newUser.setEmail("duplicate@test.com");
         newUser.setPassword("Password123!");
@@ -130,7 +131,7 @@ public class AuthenticationIntegrationTest {
         userRepository.save(existingUser);
 
         // Try to register with same username
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("duplicate_username");
         newUser.setEmail("second@test.com");
         newUser.setPassword("Password123!");
@@ -147,7 +148,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should reject registration with invalid role")
     void testRegisterInvalidRole() throws Exception {
         // Arrange
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("test_user");
         newUser.setEmail("test@test.com");
         newUser.setPassword("Password123!");
@@ -164,7 +165,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should hash password during registration")
     void testPasswordIsHashed() throws Exception {
         // Arrange
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("test_hash");
         newUser.setEmail("hash@test.com");
         newUser.setPassword("PlainTextPassword");
@@ -294,7 +295,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should complete full registration and login flow")
     void testCompleteRegistrationAndLoginFlow() throws Exception {
         // Step 1: Register a new user
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("flow_test_user");
         newUser.setEmail("flowtest@example.com");
         newUser.setPassword("TestPassword123!");
@@ -323,7 +324,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should prevent double registration and allow login")
     void testDoubleRegistrationPrevention() throws Exception {
         // Step 1: Register first time
-        UserDTO newUser = new UserDTO();
+        UserRegistrationDTO newUser = new UserRegistrationDTO();
         newUser.setUsername("double_test");
         newUser.setEmail("double@test.com");
         newUser.setPassword("Password123!");
@@ -382,7 +383,7 @@ public class AuthenticationIntegrationTest {
     @DisplayName("Should register users with different roles")
     void testRegisterMultipleRoles() throws Exception {
         // Register developer
-        UserDTO developer = new UserDTO();
+        UserRegistrationDTO developer = new UserRegistrationDTO();
         developer.setUsername("dev_user");
         developer.setEmail("dev@test.com");
         developer.setPassword("Password123!");
@@ -395,7 +396,7 @@ public class AuthenticationIntegrationTest {
                 .andExpect(jsonPath("$.role").value("developer"));
 
         // Register client
-        UserDTO client = new UserDTO();
+        UserRegistrationDTO client = new UserRegistrationDTO();
         client.setUsername("client_user");
         client.setEmail("client@test.com");
         client.setPassword("Password123!");

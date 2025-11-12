@@ -1,24 +1,34 @@
 package org.devconnect.devconnectbackend.controller;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.devconnect.devconnectbackend.dto.UserDTO;
+import org.devconnect.devconnectbackend.dto.UserRegistrationDTO;
 import org.devconnect.devconnectbackend.model.User;
 import org.devconnect.devconnectbackend.repository.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for UserController
@@ -38,7 +48,7 @@ public class UserControllerTest {
     private User testUser;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
         
         // Create a test user
@@ -57,11 +67,11 @@ public class UserControllerTest {
     @DisplayName("Should successfully register a new user")
     void testRegisterUser_Success() {
         // Arrange
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("newuser");
-        userDTO.setEmail("new@example.com");
-        userDTO.setPassword("password123");
-        userDTO.setRole("developer");
+        UserRegistrationDTO registrationDTO = new UserRegistrationDTO();
+        registrationDTO.setUsername("newuser");
+        registrationDTO.setEmail("new@example.com");
+        registrationDTO.setPassword("password123");
+        registrationDTO.setRole("developer");
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
@@ -72,15 +82,15 @@ public class UserControllerTest {
         });
 
         // Act
-        ResponseEntity<UserDTO> response = userController.registerUser(userDTO);
+        ResponseEntity<UserDTO> response = userController.registerUser(registrationDTO);
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("newuser", response.getBody().getUsername());
-        assertEquals("new@example.com", response.getBody().getEmail());
-        assertEquals("developer", response.getBody().getRole());
-        assertNull(response.getBody().getPassword()); // Password should not be returned
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    UserDTO body = Objects.requireNonNull(response.getBody());
+    assertEquals("newuser", body.getUsername());
+    assertEquals("new@example.com", body.getEmail());
+    assertEquals("developer", body.getRole());
+    assertNull(body.getPassword()); // Password should not be returned
         
         verify(userRepository).existsByEmail("new@example.com");
         verify(userRepository).existsByUsername("newuser");
@@ -91,16 +101,16 @@ public class UserControllerTest {
     @DisplayName("Should fail registration when email already exists")
     void testRegisterUser_EmailExists() {
         // Arrange
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("newuser");
-        userDTO.setEmail("existing@example.com");
-        userDTO.setPassword("password123");
-        userDTO.setRole("developer");
+    UserRegistrationDTO registrationDTO = new UserRegistrationDTO();
+    registrationDTO.setUsername("newuser");
+    registrationDTO.setEmail("existing@example.com");
+    registrationDTO.setPassword("password123");
+    registrationDTO.setRole("developer");
 
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
         // Act
-        ResponseEntity<UserDTO> response = userController.registerUser(userDTO);
+    ResponseEntity<UserDTO> response = userController.registerUser(registrationDTO);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -112,17 +122,17 @@ public class UserControllerTest {
     @DisplayName("Should fail registration when username already exists")
     void testRegisterUser_UsernameExists() {
         // Arrange
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("existinguser");
-        userDTO.setEmail("new@example.com");
-        userDTO.setPassword("password123");
-        userDTO.setRole("developer");
+    UserRegistrationDTO registrationDTO = new UserRegistrationDTO();
+    registrationDTO.setUsername("existinguser");
+    registrationDTO.setEmail("new@example.com");
+    registrationDTO.setPassword("password123");
+    registrationDTO.setRole("developer");
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername("existinguser")).thenReturn(true);
 
         // Act
-        ResponseEntity<UserDTO> response = userController.registerUser(userDTO);
+    ResponseEntity<UserDTO> response = userController.registerUser(registrationDTO);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -135,17 +145,17 @@ public class UserControllerTest {
     @DisplayName("Should handle invalid role during registration")
     void testRegisterUser_InvalidRole() {
         // Arrange
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("newuser");
-        userDTO.setEmail("new@example.com");
-        userDTO.setPassword("password123");
-        userDTO.setRole("INVALID_ROLE");
+    UserRegistrationDTO registrationDTO = new UserRegistrationDTO();
+    registrationDTO.setUsername("newuser");
+    registrationDTO.setEmail("new@example.com");
+    registrationDTO.setPassword("password123");
+    registrationDTO.setRole("INVALID_ROLE");
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
 
         // Act
-        ResponseEntity<UserDTO> response = userController.registerUser(userDTO);
+    ResponseEntity<UserDTO> response = userController.registerUser(registrationDTO);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -168,11 +178,11 @@ public class UserControllerTest {
         ResponseEntity<UserDTO> response = userController.login(credentials);
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("testuser", response.getBody().getUsername());
-        assertEquals("test@example.com", response.getBody().getEmail());
-        assertNull(response.getBody().getPassword()); // Password should not be returned
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    UserDTO body = Objects.requireNonNull(response.getBody());
+    assertEquals("testuser", body.getUsername());
+    assertEquals("test@example.com", body.getEmail());
+    assertNull(body.getPassword()); // Password should not be returned
         
         verify(userRepository).findByEmail("test@example.com");
     }
@@ -225,10 +235,10 @@ public class UserControllerTest {
         ResponseEntity<UserDTO> response = userController.getUserById(1L);
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1L, response.getBody().getId());
-        assertEquals("testuser", response.getBody().getUsername());
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    UserDTO body = Objects.requireNonNull(response.getBody());
+    assertEquals(1L, body.getId());
+    assertEquals("testuser", body.getUsername());
         
         verify(userRepository).findById(1L);
     }
@@ -266,9 +276,9 @@ public class UserControllerTest {
         ResponseEntity<List<UserDTO>> response = userController.getAllUsers();
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    List<UserDTO> body = Objects.requireNonNull(response.getBody());
+    assertEquals(2, body.size());
         
         verify(userRepository).findAll();
     }
@@ -283,10 +293,10 @@ public class UserControllerTest {
         ResponseEntity<List<UserDTO>> response = userController.getUsersByRole("developer");
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals("developer", response.getBody().get(0).getRole());
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    List<UserDTO> body = Objects.requireNonNull(response.getBody());
+    assertEquals(1, body.size());
+    assertEquals("developer", body.get(0).getRole());
         
         verify(userRepository).findAll();
     }

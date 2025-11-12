@@ -14,7 +14,7 @@ public class User {
     private Long id;
     
     @Column(nullable = false, unique = true)
-    private String username;
+    private String fullName;
     
     @Column(nullable = false, unique = true)
     private String email;
@@ -47,8 +47,8 @@ public class User {
     // Constructors
     public User() {}
     
-    public User(String username, String email, String password, UserRole role) {
-        this.username = username;
+    public User(String fullName, String email, String password, UserRole role) {
+        this.fullName = fullName;
         this.email = email;
         this.password = password;
         this.role = role;
@@ -65,11 +65,11 @@ public class User {
     }
     
     public String getUsername() {
-        return username;
+        return fullName;
     }
     
     public void setUsername(String username) {
-        this.username = username;
+        this.fullName = fullName;
     }
     
     public String getEmail() {

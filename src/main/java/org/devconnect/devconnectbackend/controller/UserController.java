@@ -1,17 +1,22 @@
 package org.devconnect.devconnectbackend.controller;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.devconnect.devconnectbackend.dto.UserDTO;
+import org.devconnect.devconnectbackend.dto.UserRegistrationDTO;
 import org.devconnect.devconnectbackend.model.User;
 import org.devconnect.devconnectbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,23 +32,27 @@ public class UserController {
      * POST /api/users/register
      */
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> registerUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> registerUser(@RequestBody UserRegistrationDTO registrationDTO) {
         try {
             // Check if user already exists
-            if (userRepository.existsByEmail(userDTO.getEmail())) {
+            if (userRepository.existsByEmail(registrationDTO.getEmail())) {
                 return ResponseEntity.badRequest().build();
             }
             
-            if (userRepository.existsByUsername(userDTO.getUsername())) {
+            if (userRepository.existsByUsername(registrationDTO.getUsername())) {
                 return ResponseEntity.badRequest().build();
             }
             
             // Create user
             User user = new User();
-            user.setUsername(userDTO.getUsername());
-            user.setEmail(userDTO.getEmail());
-            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-            user.setRole(User.UserRole.valueOf(userDTO.getRole().toUpperCase()));
+            user.setUsername(registrationDTO.getUsername());
+            user.setEmail(registrationDTO.getEmail());
+            user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
+            String role = registrationDTO.getRole();
+            if (role == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            user.setRole(User.UserRole.valueOf(role.toUpperCase()));
             user.setStatus(User.UserStatus.OFFLINE);
             
             user = userRepository.save(user);
@@ -129,13 +138,14 @@ public class UserController {
     }
     
     private UserDTO convertToDTO(User user) {
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole().name().toLowerCase());
-        dto.setStatus(user.getStatus().name().toLowerCase());
-        dto.setAvatar(user.getAvatar());
-        return dto;
+    UserDTO dto = new UserDTO(
+        user.getId(),
+        user.getUsername(),
+        user.getEmail(),
+        user.getRole().name().toLowerCase(),
+        user.getStatus().name().toLowerCase(),
+        user.getAvatar()
+    );
+    return dto;
     }
 }
