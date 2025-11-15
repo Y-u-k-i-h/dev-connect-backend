@@ -156,7 +156,7 @@ Content-Type: application/json
 **Success Response (200 OK):**
 ```json
 {
-  "id": 1,
+  "conversation_id": 1,
   "username": "john_dev",
   "email": "john@example.com",
   "role": "developer",
@@ -183,7 +183,7 @@ Content-Type: application/json
 **Success Response (200 OK):**
 ```json
 {
-  "id": 1,
+  "conversation_id": 1,
   "username": "john_dev",
   "email": "john@example.com",
   "role": "developer",

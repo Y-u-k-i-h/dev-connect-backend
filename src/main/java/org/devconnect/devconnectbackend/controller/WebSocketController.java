@@ -75,7 +75,7 @@
 //     */
 //    @MessageMapping("/message-delivered")
 //    public void handleMessageDelivered(@Payload MessageDTO messageDTO) {
-//        messageService.markMessageAsDelivered(messageDTO.getId());
+//        messageService.markMessageAsDelivered(messageDTO.getConversation_id());
 //    }
 //
 //    /**
@@ -93,7 +93,7 @@
 //            );
 //
 //            messageService.markMessagesAsRead(
-//                conversation.getId(),
+//                conversation.getConversation_id(),
 //                messageDTO.getSenderId(),
 //                messageDTO.getReceiverId()
 //            );

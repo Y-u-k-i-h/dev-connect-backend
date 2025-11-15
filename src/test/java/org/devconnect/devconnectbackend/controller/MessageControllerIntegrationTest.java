@@ -1,27 +1,32 @@
 package org.devconnect.devconnectbackend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.devconnect.devconnectbackend.dto.MessageDTO;
 import org.devconnect.devconnectbackend.model.User;
 import org.devconnect.devconnectbackend.repository.MessageRepository;
 import org.devconnect.devconnectbackend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.test.context.support.WithMockUser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@WithMockUser
 @DisplayName("Message Controller Integration Tests")
 class MessageControllerIntegrationTest {
 
@@ -46,11 +51,21 @@ class MessageControllerIntegrationTest {
         messageRepository.deleteAll();
         userRepository.deleteAll();
 
-        // Create test users
-        sender = new User("johndoe", "john@test.com", "password123", User.UserRole.CLIENT);
+        // Create test users using proper constructor
+        sender = new User();
+        sender.setFirstName("John");
+        sender.setLastName("Doe");
+        sender.setEmail("john@test.com");
+        sender.setPasswordHash("password123");
+        sender.setUserRole(User.UserRole.CLIENT);
         sender = userRepository.save(sender);
 
-        receiver = new User("janedoe", "jane@test.com", "password456", User.UserRole.DEVELOPER);
+        receiver = new User();
+        receiver.setFirstName("Jane");
+        receiver.setLastName("Doe");
+        receiver.setEmail("jane@test.com");
+        receiver.setPasswordHash("password456");
+        receiver.setUserRole(User.UserRole.DEVELOPER);
         receiver = userRepository.save(receiver);
     }
 
@@ -60,8 +75,8 @@ class MessageControllerIntegrationTest {
         // Arrange
         MessageDTO messageDTO = new MessageDTO(
                 null,
-                sender.getId(),
-                receiver.getId(),
+                sender.getUserId().longValue(),
+                receiver.getUserId().longValue(),
                 "Hello Jane!",
                 "sent",
                 null,
@@ -74,8 +89,8 @@ class MessageControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(messageDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.senderId").value(sender.getId()))
-                .andExpect(jsonPath("$.receiverId").value(receiver.getId()))
+                .andExpect(jsonPath("$.senderId").value(sender.getUserId()))
+                .andExpect(jsonPath("$.receiverId").value(receiver.getUserId()))
                 .andExpect(jsonPath("$.text").value("Hello Jane!"))
                 .andExpect(jsonPath("$.status").value("sent"));
     }
@@ -86,8 +101,8 @@ class MessageControllerIntegrationTest {
         // Simple test - just verify the endpoint accepts valid parameters
         // The endpoint should return 200 OK even if conversation is empty
         mockMvc.perform(get("/api/messages/conversation")
-                        .param("userId1", sender.getId().toString())
-                        .param("userId2", receiver.getId().toString()))
+                        .param("userId1", sender.getUserId().toString())
+                        .param("userId2", receiver.getUserId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
@@ -98,8 +113,8 @@ class MessageControllerIntegrationTest {
         // First create a conversation and send a message
         MessageDTO messageDTO = new MessageDTO(
                 null,
-                sender.getId(),
-                receiver.getId(),
+                sender.getUserId().longValue(),
+                receiver.getUserId().longValue(),
                 "Hello!",
                 "sent",
                 null,
@@ -119,7 +134,7 @@ class MessageControllerIntegrationTest {
     @Test
     @DisplayName("Should update user status")
     void testUpdateUserStatus() throws Exception {
-        mockMvc.perform(put("/api/messages/status/" + sender.getId())
+        mockMvc.perform(put("/api/messages/status/" + sender.getUserId())
                         .param("status", "ONLINE"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Status updated successfully"));
@@ -129,12 +144,12 @@ class MessageControllerIntegrationTest {
     @DisplayName("Should get user status")
     void testGetUserStatus() throws Exception {
         // Arrange - update status first
-        mockMvc.perform(put("/api/messages/status/" + sender.getId())
+        mockMvc.perform(put("/api/messages/status/" + sender.getUserId())
                 .param("status", "ONLINE"))
                 .andExpect(status().isOk());
 
         // Act & Assert - UserService returns lowercase status
-        mockMvc.perform(get("/api/messages/status/" + sender.getId()))
+        mockMvc.perform(get("/api/messages/status/" + sender.getUserId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("online"));
     }
@@ -146,7 +161,7 @@ class MessageControllerIntegrationTest {
         MessageDTO messageDTO = new MessageDTO(
                 null,
                 999L, // Non-existent user
-                receiver.getId(),
+                receiver.getUserId().longValue(),
                 "Hello!",
                 "sent",
                 null,

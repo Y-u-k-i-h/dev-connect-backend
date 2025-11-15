@@ -55,15 +55,25 @@ class MessageServiceTest {
         MockitoAnnotations.openMocks(this);
 
         // Create test users
-        sender = new User("sender", "sender@test.com", "password", User.UserRole.CLIENT);
-        sender.setId(1L);
+        sender = new User();
+        sender.setUserId(1);
+        sender.setFirstName("Sender");
+        sender.setLastName("User");
+        sender.setEmail("sender@test.com");
+        sender.setPasswordHash("password");
+        sender.setUserRole(User.UserRole.CLIENT);
         
-        receiver = new User("receiver", "receiver@test.com", "password", User.UserRole.DEVELOPER);
-        receiver.setId(2L);
+        receiver = new User();
+        receiver.setUserId(2);
+        receiver.setFirstName("Receiver");
+        receiver.setLastName("User");
+        receiver.setEmail("receiver@test.com");
+        receiver.setPasswordHash("password");
+        receiver.setUserRole(User.UserRole.DEVELOPER);
 
         // Create test conversation (user 1 and user 2)
         testConversation = new Conversation(1L, 2L);
-        testConversation.setId(1L);
+        testConversation.setConversation_id(1L);
         testConversation.setUnreadCountA(0);
         testConversation.setUnreadCountB(0);
 
@@ -78,8 +88,8 @@ class MessageServiceTest {
     @DisplayName("Should send message successfully")
     void testSendMessage() {
         // Arrange
-        when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(receiver));
+        when(userRepository.findById(1)).thenReturn(Optional.of(sender));
+        when(userRepository.findById(2)).thenReturn(Optional.of(receiver));
         when(conversationService.getOrCreateConversation(1L, 2L)).thenReturn(testConversation);
         when(messageRepository.save(any(Message.class))).thenReturn(testMessage);
         doNothing().when(conversationService).updateConversationAfterMessage(anyLong(), anyLong(), anyString());
@@ -95,8 +105,8 @@ class MessageServiceTest {
         assertEquals("Hello Jane!", result.getText());
         assertEquals("sent", result.getStatus());
 
-        verify(userRepository, times(1)).findById(1L);
-        verify(userRepository, times(1)).findById(2L);
+        verify(userRepository, times(1)).findById(1);
+        verify(userRepository, times(1)).findById(2);
         verify(conversationService, times(1)).getOrCreateConversation(1L, 2L);
         verify(messageRepository, times(1)).save(any(Message.class));
         verify(conversationService, times(1)).updateConversationAfterMessage(eq(1L), eq(1L), eq("Hello Jane!"));

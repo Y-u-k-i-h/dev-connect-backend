@@ -43,10 +43,20 @@ class WebSocketMessagingIntegrationTest {
         userRepository.deleteAll();
 
         // Create test users
-        sender = new User("sender", "sender@test.com", "password", User.UserRole.CLIENT);
+        sender = new User();
+        sender.setFirstName("Sender");
+        sender.setLastName("User");
+        sender.setEmail("sender@test.com");
+        sender.setPasswordHash("password");
+        sender.setUserRole(User.UserRole.CLIENT);
         sender = userRepository.save(sender);
 
-        receiver = new User("receiver", "receiver@test.com", "password", User.UserRole.DEVELOPER);
+        receiver = new User();
+        receiver.setFirstName("Receiver");
+        receiver.setLastName("User");
+        receiver.setEmail("receiver@test.com");
+        receiver.setPasswordHash("password");
+        receiver.setUserRole(User.UserRole.DEVELOPER);
         receiver = userRepository.save(receiver);
 
         // Setup WebSocket client
@@ -113,8 +123,8 @@ class WebSocketMessagingIntegrationTest {
                 // Send a message
                 MessageDTO messageDTO = new MessageDTO(
                         null,
-                        sender.getId(),
-                        receiver.getId(),
+                        sender.getUserId().longValue(),
+                        receiver.getUserId().longValue(),
                         "WebSocket test message",
                         "sent",
                         null,

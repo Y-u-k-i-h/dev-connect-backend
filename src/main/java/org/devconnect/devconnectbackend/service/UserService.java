@@ -134,6 +134,11 @@ public class UserService {
         // TODO: Broadcast status change to all users via WebSocket
     }
 
+    public String getUserStatus(Integer userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getUserStatus().name().toLowerCase();
+    }
+
     public void updateLastSeen(Integer userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 

@@ -17,7 +17,7 @@ This document explains the changes made to the dev-connect-backend project and t
   - `src/main/java/org/devconnect/devconnectbackend/repository/ClientRepository.java`
   - `src/main/java/org/devconnect/devconnectbackend/repository/DeveloperRepository.java`
 - **Changes**: 
-  - Changed `findByUser_UserId(Integer userId)` to `findByUser_Id(Long id)`
+  - Changed `findByUser_UserId(Integer userId)` to `findByUser_Id(Long conversation_id)`
 - **Impact**: ✅ **NO CROSS-PLATFORM ISSUES**
   - Spring Data JPA repository methods work identically across platforms
   - Database queries are abstracted by JPA/Hibernate

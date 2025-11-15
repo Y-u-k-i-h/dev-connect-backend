@@ -1,9 +1,28 @@
 package org.devconnect.devconnectbackend.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+
 @Table(name = "messages",
         indexes = {
                 @Index(name = "idx_messages_conversation_time", columnList = "conversation_id, timestamp DESC"),
@@ -13,10 +32,15 @@ public class Message {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "message_id")
     private Long id;
     
     @Column(name = "conversation_id", nullable = false)
     private Long conversationId;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", nullable = false, insertable = false, updatable = false)
+    private User sender;
     
     @Column(name = "sender_id", nullable = false)
     private Long senderId;
@@ -34,8 +58,6 @@ public class Message {
     @Column(name = "read_at")
     private LocalDateTime readAt;
     
-    // Constructors
-    public Message() {}
     
     public Message(Long conversationId, Long senderId, String content) {
         this.conversationId = conversationId;

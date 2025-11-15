@@ -1,9 +1,27 @@
 package org.devconnect.devconnectbackend.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
+@Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "conversations",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_conversation_participants", 
@@ -16,10 +34,18 @@ public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long conversation_id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "participant_a_id", nullable = false, insertable = false, updatable = false)
+    private User participantA;
 
     @Column(name = "participant_a_id", nullable = false)
     private Long participantAId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "participant_b_id", nullable = false, insertable = false, updatable = false)
+    private User participantB;
 
     @Column(name = "participant_b_id", nullable = false)
     private Long participantBId;
@@ -39,8 +65,6 @@ public class Conversation {
     @Column(name = "unread_count_b")
     private Integer unreadCountB = 0;
 
-    public Conversation() {}
-
     public Conversation(Long userId1, Long userId2) {
         // Normalize: always store smaller ID as participantA
         if (userId1 < userId2) {
@@ -54,8 +78,8 @@ public class Conversation {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getConversation_id() { return conversation_id; }
+    public void setConversation_id(Long conversation_id) { this.conversation_id = conversation_id; }
 
     public Long getParticipantAId() { return participantAId; }
     public void setParticipantAId(Long participantAId) { this.participantAId = participantAId; }

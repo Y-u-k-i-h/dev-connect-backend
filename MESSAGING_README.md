@@ -108,7 +108,7 @@ stompClient.send('/app/typing', {}, JSON.stringify({
 
 // Mark message as delivered
 stompClient.send('/app/message-delivered', {}, JSON.stringify({
-  id: 123,
+  conversation_id: 123,
   receiverId: 2
 }));
 
@@ -324,7 +324,7 @@ export const useChat = () => useContext(ChatContext);
 ### Users Table
 ```sql
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    conversation_id BIGSERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -339,9 +339,9 @@ CREATE TABLE users (
 ### Messages Table
 ```sql
 CREATE TABLE messages (
-    id BIGSERIAL PRIMARY KEY,
-    sender_id BIGINT NOT NULL REFERENCES users(id),
-    receiver_id BIGINT NOT NULL REFERENCES users(id),
+    conversation_id BIGSERIAL PRIMARY KEY,
+    sender_id BIGINT NOT NULL REFERENCES users(conversation_id),
+    receiver_id BIGINT NOT NULL REFERENCES users(conversation_id),
     content TEXT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'SENT',
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -353,9 +353,9 @@ CREATE TABLE messages (
 ### Chats Table
 ```sql
 CREATE TABLE chats (
-    id BIGSERIAL PRIMARY KEY,
-    user1_id BIGINT NOT NULL REFERENCES users(id),
-    user2_id BIGINT NOT NULL REFERENCES users(id),
+    conversation_id BIGSERIAL PRIMARY KEY,
+    user1_id BIGINT NOT NULL REFERENCES users(conversation_id),
+    user2_id BIGINT NOT NULL REFERENCES users(conversation_id),
     project_id BIGINT NOT NULL,
     last_message TEXT,
     last_message_time TIMESTAMP,
