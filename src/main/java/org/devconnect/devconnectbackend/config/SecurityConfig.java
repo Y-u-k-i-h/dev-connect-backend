@@ -37,7 +37,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (no authentication required)
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh").permitAll()
+                        .requestMatchers(
+                                "/api/users/register",
+                                "/api/users/login",
+                                "/api/users/refresh",
+                                "/api/password-reset/"
+                        ).permitAll()
                         .requestMatchers("/api/users/exists/**").permitAll()
 
                         // All other endpoints require authentication

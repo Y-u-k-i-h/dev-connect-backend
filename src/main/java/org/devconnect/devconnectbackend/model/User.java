@@ -59,6 +59,13 @@ public class User {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Column(name = "auth_code", length = 6)
+    @Size(min = 6, max = 6)
+    private String authCode;
+
+    @Column(name = "auth_code_expiry")
+    private LocalDateTime authCodeExpiry;
+
     public enum UserRole {
         CLIENT,
         DEVELOPER,
