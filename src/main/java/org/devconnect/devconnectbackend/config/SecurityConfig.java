@@ -35,7 +35,7 @@ public class SecurityConfig {
     return http
         // Enable CORS support so browser preflight (OPTIONS) requests are
         // handled before Spring Security enforces authorization rules.
-        .cors().and()
+        .cors(cors -> cors.configure(http))
         .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

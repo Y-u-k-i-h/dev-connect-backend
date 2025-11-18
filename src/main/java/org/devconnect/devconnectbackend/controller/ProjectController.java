@@ -104,6 +104,16 @@ public class ProjectController {
     }
 
     /**
+     * Get available (unclaimed) projects that developers can claim
+     * GET /api/projects/available
+     */
+    @GetMapping("/available")
+    public ResponseEntity<List<ProjectResponseDTO>> getAvailableProjects() {
+        List<ProjectResponseDTO> projects = projectService.getAvailableProjects();
+        return ResponseEntity.ok(projects);
+    }
+
+    /**
      * Atomically claim a project for the authenticated developer.
      * This endpoint ensures that only one developer can claim a project at a time.
      * 
