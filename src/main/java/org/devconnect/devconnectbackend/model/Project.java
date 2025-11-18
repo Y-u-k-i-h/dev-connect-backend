@@ -24,7 +24,7 @@ public class Project {
     @Column(name = "project_name", nullable = false)
     private String projectName;
 
-    @Column(name = "dev_id", nullable = false)
+    @Column(name = "dev_id", nullable = true)
     private Long devId;
 
     @Column(name = "client_id", nullable = false)

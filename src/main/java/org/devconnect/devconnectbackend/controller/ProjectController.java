@@ -23,8 +23,15 @@ public class ProjectController {
     // Create a new project
     @PostMapping("/create")
     public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO requestDTO) {
-        ProjectResponseDTO response = projectService.addProject(requestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        try {
+            System.out.println("Creating project with data: " + requestDTO);
+            ProjectResponseDTO response = projectService.addProject(requestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            System.err.println("Error creating project: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     // Update an existing project

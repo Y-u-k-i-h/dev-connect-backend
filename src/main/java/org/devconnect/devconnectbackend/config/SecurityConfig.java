@@ -32,8 +32,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
+    return http
+        // Enable CORS support so browser preflight (OPTIONS) requests are
+        // handled before Spring Security enforces authorization rules.
+        .cors().and()
+        .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (no authentication required)

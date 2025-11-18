@@ -1,5 +1,6 @@
 package org.devconnect.devconnectbackend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.devconnect.devconnectbackend.dto.*;
 import org.devconnect.devconnectbackend.model.User;
@@ -17,6 +18,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UserController.class);
 
     // User Registration
     @PostMapping("/register")
@@ -27,7 +29,11 @@ public class UserController {
 
     // User Login
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<LoginResponseDTO> login(HttpServletRequest request, @Valid @RequestBody LoginDTO loginDTO) {
+        // Log login attempt for debugging (do not log passwords in production)
+        String origin = request.getHeader("Origin");
+        logger.info("Login attempt from origin {} for email={}", origin, loginDTO.getEmail());
+
         LoginResponseDTO loginResponseDTO = userService.login(loginDTO);
         return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
     }
