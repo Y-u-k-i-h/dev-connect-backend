@@ -1,12 +1,16 @@
 package org.devconnect.devconnectbackend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.devconnect.devconnectbackend.dto.ProjectRequestDTO;
 import org.devconnect.devconnectbackend.dto.ProjectResponseDTO;
+import org.devconnect.devconnectbackend.exception.ProjectAlreadyClaimedException;
+import org.devconnect.devconnectbackend.exception.ProjectNotFoundException;
 import org.devconnect.devconnectbackend.model.Project;
 import org.devconnect.devconnectbackend.repository.ProjectRepository;
 import org.devconnect.devconnectbackend.utills.ProjectMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -102,5 +107,48 @@ public class ProjectService {
         return projectRepository.findByStatus(status).stream()
                 .map(projectMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Atomically claim a project for a developer.
+     * This method ensures that only one developer can claim a project at a time.
+     * 
+     * @param projectId The ID of the project to claim
+     * @param devId The ID of the developer claiming the project
+     * @return The updated project
+     * @throws ProjectNotFoundException if the project doesn't exist
+     * @throws ProjectAlreadyClaimedException if the project is already claimed
+     */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public ProjectResponseDTO claimProject(Long projectId, Long devId) {
+        log.info("Attempting to claim project {} for developer {}", projectId, devId);
+        
+        // Fetch the project with pessimistic write lock to prevent concurrent claims
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found with id: " + projectId));
+        
+        // Verify project is available for claiming
+        if (project.getDevId() != null) {
+            log.warn("Project {} already claimed by developer {}", projectId, project.getDevId());
+            throw new ProjectAlreadyClaimedException(
+                "Project is already claimed by developer ID: " + project.getDevId()
+            );
+        }
+        
+        if (project.getStatus() != Project.ProjectStatus.PENDING) {
+            log.warn("Project {} is not available for claiming. Current status: {}", projectId, project.getStatus());
+            throw new ProjectAlreadyClaimedException(
+                "Project is not available for claiming. Current status: " + project.getStatus()
+            );
+        }
+        
+        // Atomically update both fields
+        project.setDevId(devId);
+        project.setStatus(Project.ProjectStatus.IN_PROGRESS);
+        
+        Project claimedProject = projectRepository.save(project);
+        log.info("Successfully claimed project {} for developer {}", projectId, devId);
+        
+        return projectMapper.toResponseDTO(claimedProject);
     }
 }

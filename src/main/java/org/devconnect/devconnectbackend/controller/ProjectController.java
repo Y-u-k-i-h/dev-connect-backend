@@ -102,4 +102,28 @@ public class ProjectController {
         List<ProjectResponseDTO> projects = projectService.getProjectsByStatus(status);
         return ResponseEntity.ok(projects);
     }
+
+    /**
+     * Atomically claim a project for the authenticated developer.
+     * This endpoint ensures that only one developer can claim a project at a time.
+     * 
+     * @param projectId The ID of the project to claim
+     * @param devId The ID of the developer (passed in request body)
+     * @return The claimed project with 200 OK, or 409 CONFLICT if already claimed
+     */
+    @PostMapping("/{projectId}/claim")
+    public ResponseEntity<ProjectResponseDTO> claimProject(
+            @PathVariable Long projectId,
+            @RequestBody Map<String, Long> requestBody) {
+        Long devId = requestBody.get("devId");
+        if (devId == null) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Bad Request");
+            error.put("message", "devId is required in request body");
+            return ResponseEntity.badRequest().body(null);
+        }
+        
+        ProjectResponseDTO response = projectService.claimProject(projectId, devId);
+        return ResponseEntity.ok(response);
+    }
 }
