@@ -110,6 +110,18 @@ public class ProjectService {
     }
 
     /**
+     * Get available projects (unclaimed projects with PENDING status)
+     * These are projects that developers can claim
+     */
+    public List<ProjectResponseDTO> getAvailableProjects() {
+        return projectRepository.findAll().stream()
+                .filter(project -> project.getDevId() == null && 
+                                   project.getStatus() == Project.ProjectStatus.PENDING)
+                .map(projectMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Atomically claim a project for a developer.
      * This method ensures that only one developer can claim a project at a time.
      * 

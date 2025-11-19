@@ -55,6 +55,16 @@ public class UserService {
         // Map DTO to User entity
         User user = userMapper.toUserModel(userRegistrationDTO);
 
+        // Generate username from email if not provided
+        if (user.getUsername() == null || user.getUsername().isEmpty()) {
+            String username = userRegistrationDTO.getEmail().split("@")[0];
+            // Make username unique by adding timestamp if needed
+            if (userRepository.existsByUsername(username)) {
+                username = username + System.currentTimeMillis();
+            }
+            user.setUsername(username);
+        }
+
         // Hash the password before saving
         user.setPasswordHash(passwordEncoder.encode(userRegistrationDTO.getPassword()));
 
@@ -196,6 +206,45 @@ public class UserService {
         List<User> users = userRepository.findByUserRole(role);
 
         return users.stream()
+                .map(user -> userMapper.toUserResponseDTO(user))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Search users by name or email
+     * Supports filtering by role
+     * 
+     * @param query Search term (searches in firstName, lastName, username, email)
+     * @param role Optional role filter (CLIENT or DEVELOPER)
+     * @return List of matching users
+     */
+    public List<UserResponseDTO> searchUsers(String query, User.UserRole role) {
+        List<User> allUsers;
+        
+        // Get users by role if specified, otherwise get all
+        if (role != null) {
+            allUsers = userRepository.findByUserRole(role);
+        } else {
+            allUsers = userRepository.findAll();
+        }
+        
+        // Filter by search query
+        String searchTerm = query.toLowerCase().trim();
+        
+        return allUsers.stream()
+                .filter(user -> {
+                    // Search in firstName, lastName, username, and email
+                    boolean matchesFirstName = user.getFirstName() != null && 
+                                               user.getFirstName().toLowerCase().contains(searchTerm);
+                    boolean matchesLastName = user.getLastName() != null && 
+                                             user.getLastName().toLowerCase().contains(searchTerm);
+                    boolean matchesUsername = user.getUsername() != null && 
+                                             user.getUsername().toLowerCase().contains(searchTerm);
+                    boolean matchesEmail = user.getEmail() != null && 
+                                          user.getEmail().toLowerCase().contains(searchTerm);
+                    
+                    return matchesFirstName || matchesLastName || matchesUsername || matchesEmail;
+                })
                 .map(user -> userMapper.toUserResponseDTO(user))
                 .collect(Collectors.toList());
     }

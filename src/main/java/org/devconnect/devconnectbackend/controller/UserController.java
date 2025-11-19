@@ -57,6 +57,25 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsersByRole(role));
     }
 
+    // Search users by name or email (for messaging)
+    @GetMapping("/search")
+    public ResponseEntity<List<UserResponseDTO>> searchUsers(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) User.UserRole role) {
+        
+        if (query == null || query.trim().isEmpty()) {
+            // If no query, return users by role or all users
+            if (role != null) {
+                return ResponseEntity.ok(userService.getUsersByRole(role));
+            }
+            return ResponseEntity.ok(userService.getAllUsers());
+        }
+        
+        // Search by name or email
+        List<UserResponseDTO> users = userService.searchUsers(query, role);
+        return ResponseEntity.ok(users);
+    }
+
     // Check if email exists
     @GetMapping("/exists/{email}")
     public ResponseEntity<Boolean> emailExists(@PathVariable String email) {

@@ -84,9 +84,13 @@ public class UserControllerTest {
         loginDTO.setEmail("test@example.com");
         loginDTO.setPassword("password123");
 
+        // Mock HttpServletRequest
+        jakarta.servlet.http.HttpServletRequest mockRequest = mock(jakarta.servlet.http.HttpServletRequest.class);
+        when(mockRequest.getHeader("Origin")).thenReturn("http://localhost:3000");
+
         when(userService.login(any(LoginDTO.class))).thenReturn(testLoginResponse);
 
-        ResponseEntity<LoginResponseDTO> response = userController.login(loginDTO);
+        ResponseEntity<LoginResponseDTO> response = userController.login(mockRequest, loginDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
